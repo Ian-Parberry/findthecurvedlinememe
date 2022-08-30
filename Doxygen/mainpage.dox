@@ -1,0 +1,219 @@
+/**
+
+\mainpage 
+
+\anchor section1
+
+1. Introduction
+------------
+
+The optical illusion shown in \ref fig1 "Fig. 1" appears to have
+first appeared on FaceBook in 2021 (see, for example,
+[knowyourmeme.com](https://knowyourmeme.com/memes/find-the-curved-line)).
+If you look at the center of the image you will see what appear to be curved green
+lines at the edge of your vision (if you don't see them initially,
+make the image larger by zooming in or it or by
+making your browser wider). However, when you move your eyes to look
+directly at them, they will disappear.
+
+The illusion uses the fact that we see clearly only the
+part of the image that is within the
+fovea of our eyes, whereas the image that you think that you see outside
+of that small area is in fact interpolated from incomplete data from the sparser
+rods and cones outside of the fovea. This interpolation is done by a small and
+easy to fool
+cluster of neurons outside of your conscious control.
+For more optical illusions of this type, see 
+[https://github.com/Ian-Parberry/opticalillusions](https://github.com/Ian-Parberry/opticalillusions).
+
+\anchor fig1
+\image html original.png "Fig. 1: The original image." width=50%
+
+If you examine \ref fig1 "Fig. 1" more closely, you will see that it
+is an \f$8 \times 8\f$ tesselation using the tile shown in
+\ref fig2 "Fig. 2" using all 8 possible orientations.
+
+\anchor fig2
+\image html tile.png "Fig. 2: A single tile." 
+
+To more easily see tile orientations, look at the two white rectangles
+circled in red in \ref fig3 "Fig. 3". Notice that the upper rectangle
+is wider than it is long, and that the lower rectangle is a square.
+
+\anchor fig3
+\image html tile2.png "Fig. 3: Features used to determine orientation." 
+
+\ref fig4 "Fig. 4" shows the image from \ref fig1 "Fig. 1"
+with each tile orientation colored and numbered 
+using the key shown in \ref table1 "Table 1".
+
+\anchor fig4
+\image html numbers.png "Fig. 4: The tesselated image with tile orientations colored and numbered." width=35% 
+
+Fortunately for us, GDI+ has an enumerated type for image
+orientation called `Gdiplus::RotateFlipType`.
+\ref table1 "Table 1" also shows the corresponding
+member of `Gdiplus::RotateFlipType` for each of the tile
+orientations shown in \ref fig4 "Fig. 4".
+Notice that if a tile has orientation index `i` in
+the first column of \ref table1 "Table 1", then it has
+flip type `(Gdiplus::RotateFlipType)i` in
+the last column of \ref table1 "Table 1".
+
+\anchor table1
+<center>
+<table>
+<caption>Table 1: Tile orientations. All rotations are clockwise.</caption>
+<tr>
+<th align="center">Index</th>
+<th align="center">Color</th>
+<th align="center">Description</th>
+<th align="center">`Gdiplus::RotateFlipType`</th>
+</tr>
+<tr>
+<td align="center">0</td>
+<td>Red</td>
+<td>Original</td>
+<td>`RotateNoneFlipNone`</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td>Green</td>
+<td>Rotate 90°</td>
+<td>`Rotate90FlipNone`</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td>Cyan</td>
+<td>Rotate 180°</td>
+<td>`Rotate180FlipNone`</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td>Blue</td>
+<td>Rotate 270°</td>
+<td>`Rotate270FlipNone`</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td>Yellow</td>
+<td>Flip X</td>
+<td>`RotateNoneFlipX`</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td>Orange</td>
+<td>Rotate 90°, flip X</td>
+<td>`Rotate90FlipX`</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td>Magenta</td>
+<td>Rotate 180°, flip X</td>
+<td>`Rotate180FlipX`</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td>Purple</td>
+<td>Rotate 270°, flip X</td>
+<td>`Rotate270FlipX`</td>
+</tr>
+</table>
+</center>
+
+This enables us to hard-code the indices of the original tesselation shown in
+\ref fig4 "Fig. 4" as a two-dimensional array in row-major order:
+
+```
+static const UINT nOriginal[8][8]{
+  {0, 1, 5, 4, 5, 6, 0, 3},
+  {1, 2, 6, 5, 6, 7, 3, 2},
+  {0, 1, 0, 1, 0, 1, 0, 1},
+  {1, 2, 3, 0, 3, 0, 3, 0},
+  {5, 6, 0, 3, 0, 1, 5, 4},
+  {6, 7, 3, 2, 1, 2, 6, 5},
+  {0, 1, 0, 1, 0, 1, 0, 1},
+  {3, 0, 3, 0, 1, 2, 3, 0}
+}; //nOriginal
+```
+
+If the original tile is stored as a `Gdiplus::Bitmap`, then
+we can transform it to the orientation required in row `i` and
+column `j` of \ref fig1 "Fig. 1" (that is, `nOriginal[i][j]`) by calling 
+`Gdiplus::Bitmap::RotateFlip((Gdiplus::RotateFlipType)nOriginal[i][j])`
+
+\anchor section2
+
+2. Screen Shots
+-------------
+
+\ref fig5 "Fig. 5" shows a screen shot of the app with the
+original tesselation from \ref fig1 "Fig. 1".
+Note that while the tesselation in \ref fig1 "Fig. 1", which was downloaded from 
+[knowyourmeme.com](https://knowyourmeme.com/memes/find-the-curved-line)),
+has some idiosyncracies (the bottom row of tiles is incomplete,
+and tile alignment is shaky at best), the image shown in \ref fig5 "Fig. 5"
+does not.
+
+\anchor fig5
+\image html ss-original.png "Fig. 5: Screen shot showing the original tesselation." width=50%  
+
+Additionally, there does not appear to be anything special about
+the original tile orientations in \ref fig1 "Fig. 1".
+A randomly selected set of orientations appears to do equally
+well, as shown in the example in \ref fig6 "Fig. 6".
+
+\anchor fig6
+\image html ss-random.png "Fig. 6: Screen shot showing a random tesselation." width=50% 
+ 
+\anchor section3
+
+3. Code Overview
+----------------
+
+It is assumed that the reader is familiar with the basics
+of Windows programming such as `WinMain`, the Window procedure, message
+passing, and drop-down menus.
+`Main.cpp` contains the mandatory Windows functions `wWinMain()`
+and a Window procedure `WndProc()`, which use a single global variable
+`static CMain* g_pMain`. 
+Most of the other gnarly Windows-specific
+code, which used the `Win32` API, is hidden away in `WindowsHelpers.cpp`
+and `WindowsHelpers.cpp`.
+`Gdi+` is used for the graphics.
+The main class is `CMain`, which encapsulates the main body of the
+code in the approved object-oriented fashion. 
+
+\anchor section4
+
+4. The Controls
+---------------
+
+The menu bar at the top of the program window has three drop-down menus,
+\ref filemenu "File", 
+\ref tesselationmenu "Tesselation", and 
+\ref helpmenu "Help".
+
+\anchor filemenu
+### 4.1 The `File` Menu
+
+The `File` menu has two options, `Save` and `Quit`.
+Selecting `Save` will let you save the current image as a PNG file.
+Selecting `Quit` will exit the application.
+
+\anchor tesselationmenu
+### 4.2 The `Tesselation` Menu
+
+The `Tesselation` menu has two options, `Original` and `Random`.
+Selecting `Original` will generate and display the original tesselation.
+Selecting `Random` will generate and display a pseudo-random tesselation.
+
+\anchor helpmenu
+### 4.3 The `Help` Menu
+
+The `Help` menu has two entries, `Display` `help` which opens up this 
+documentation in a browser,
+and `About` which displays the `About` dialog box.
+
+**/
+ 
